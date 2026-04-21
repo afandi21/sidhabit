@@ -10,7 +10,7 @@ use Spatie\Activitylog\LogOptions;
 
 class Dosen extends Model
 {
-    use LogsActivity;
+    use LogsActivity, \App\Traits\FilterByRoleTrait;
 
     protected $fillable = [
         'user_id', 'nidn', 'nuptk', 'nama_lengkap', 'gelar_depan', 'gelar_belakang',
@@ -59,7 +59,7 @@ class Dosen extends Model
         return $this->hasMany(IzinCuti::class);
     }
 
-    public function scopeAktif($query)
+    public function scopeActive($query)
     {
         return $query->where('status_aktif', 'aktif');
     }

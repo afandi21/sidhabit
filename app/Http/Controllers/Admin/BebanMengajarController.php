@@ -14,14 +14,8 @@ class BebanMengajarController extends Controller
     public function index()
     {
         $query = BebanMengajar::with(['semester', 'dosen', 'mataKuliah.programStudi'])
-            ->whereHas('semester', fn($q) => $q->where('is_active', true));
-
-        // Filter Operator Prodi
-        if (auth()->user()->isOperatorProdi()) {
-            $query->whereHas('mataKuliah', function ($q) {
-                $q->where('program_studi_id', auth()->user()->program_studi_id);
-            });
-        }
+            ->whereHas('semester', fn($q) => $q->where('is_active', true))
+            ->byRole('program_studi_id', 'mataKuliah');
 
         $bebans = $query->orderBy('dosen_id')->get();
             
@@ -30,45 +24,39 @@ class BebanMengajarController extends Controller
 
     public function create()
     {
+        $user = auth()->user();
         $semesters = Semester::where('is_active', true)->get();
-        $dosens = Dosen::orderBy('nama_gelar')->get();
+        $dosens = Dosen::active()->orderBy('nama_lengkap')->byRole()->get();
         
-        $mkQuery = MataKuliah::with('programStudi')->where('is_active', true);
-        if (auth()->user()->isOperatorProdi()) {
-            $mkQuery->where('program_studi_id', auth()->user()->program_studi_id);
-        }
-        $matkuls = $mkQuery->orderBy('nama_mk')->get();
+        // Ambil ruangan, filter berdasarkan kode prodi jika operator prodi
+        $ruangans = \App\Models\Ruangan::active()
+            ->when($user->isOperatorProdi(), function($q) use ($user) {
+                $kodeProdi = $user->programStudi->kode_prodi;
+                return $q->where(function($sq) use ($kodeProdi) {
+                    $sq->where('nama_ruangan', 'LIKE', "%{$kodeProdi}%")
+                       ->orWhere('kode_ruangan', 'LIKE', "%{$kodeProdi}%");
+                });
+            })->get();
         
-        return view('admin.beban.create', compact('semesters', 'dosens', 'matkuls'));
+        $matkuls = MataKuliah::with('programStudi')
+            ->active()
+            ->byRole()
+            ->orderBy('nama_mk')
+            ->get();
+        
+        return view('admin.beban.create', compact('semesters', 'dosens', 'matkuls', 'ruangans'));
     }
 
-    public function store(Request $request)
+    public function store(\App\Http\Requests\StoreBebanMengajarRequest $request)
     {
-        $request->validate([
-            'semester_id' => 'required|exists:semesters,id',
-            'dosen_id' => 'required|exists:dosens,id',
-            'mata_kuliah_id' => 'required|exists:mata_kuliah,id',
-            'kelas' => 'required|string|max:10',
-        ]);
-
-        // Cek duplicate plotting
-        $exists = BebanMengajar::where('semester_id', $request->semester_id)
-            ->where('dosen_id', $request->dosen_id)
-            ->where('mata_kuliah_id', $request->mata_kuliah_id)
-            ->where('kelas', $request->kelas)
-            ->exists();
-            
-        if ($exists) {
-            return back()->with('error', 'Plotting dosen untuk mata kuliah dan kelas ini sudah ada.')->withInput();
-        }
-
-        $mk = MataKuliah::findOrFail($request->mata_kuliah_id);
+        $data = $request->validated();
+        $mk = MataKuliah::findOrFail($data['mata_kuliah_id']);
 
         BebanMengajar::create([
-            'semester_id' => $request->semester_id,
-            'dosen_id' => $request->dosen_id,
-            'mata_kuliah_id' => $request->mata_kuliah_id,
-            'kelas' => $request->kelas,
+            'semester_id' => $data['semester_id'],
+            'dosen_id' => $data['dosen_id'],
+            'mata_kuliah_id' => $data['mata_kuliah_id'],
+            'kelas' => $data['kelas'],
             'total_sks' => $mk->sks,
             'sks_terjadwal' => 0
         ]);

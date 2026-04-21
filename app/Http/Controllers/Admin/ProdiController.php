@@ -22,16 +22,9 @@ class ProdiController extends Controller
         return view('admin.prodi.create', compact('fakultas', 'selectedFakultasId'));
     }
 
-    public function store(Request $request)
+    public function store(\App\Http\Requests\StoreProdiRequest $request)
     {
-        $request->validate([
-            'kode_prodi' => 'required|unique:program_studi,kode_prodi',
-            'nama_prodi' => 'required|string|max:255',
-            'fakultas_id' => 'required|exists:fakultas,id',
-            'jenjang' => 'required|in:D3,S1,S2,S3',
-        ]);
-
-        ProgramStudi::create($request->all());
+        ProgramStudi::create($request->validated());
         return redirect()->route('admin.fakultas.index')->with('success', 'Program Studi berhasil ditambahkan.');
     }
 
@@ -41,15 +34,9 @@ class ProdiController extends Controller
         return view('admin.prodi.edit', compact('prodi', 'fakultas'));
     }
 
-    public function update(Request $request, ProgramStudi $prodi)
+    public function update(\App\Http\Requests\UpdateProdiRequest $request, ProgramStudi $prodi)
     {
-        $request->validate([
-            'kode_prodi' => 'required|unique:program_studi,kode_prodi,' . $prodi->id,
-            'nama_prodi' => 'required|string|max:255',
-            'fakultas_id' => 'required|exists:fakultas,id',
-        ]);
-
-        $prodi->update($request->all());
+        $prodi->update($request->validated());
         return redirect()->route('admin.fakultas.index')->with('success', 'Program Studi berhasil diperbarui.');
     }
 

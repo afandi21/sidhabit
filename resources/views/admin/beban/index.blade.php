@@ -35,7 +35,7 @@
                 <tbody>
                     @forelse($bebans as $b)
                     <tr>
-                        <td class="ps-4 fw-bold text-primary">{{ $b->dosen->nama_gelar }}</td>
+                        <td class="ps-4 fw-bold text-primary">{{ $b->dosen->nama_lengkap }}</td>
                         <td>
                             <div class="fw-bold">
                                 <span class="badge bg-secondary me-1">{{ $b->mataKuliah->programStudi->kode_prodi ?? '-' }}</span> 

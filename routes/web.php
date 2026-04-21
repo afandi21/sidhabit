@@ -119,6 +119,8 @@ Route::middleware('auth')->group(function () {
         Route::resource('matakuliah', \App\Http\Controllers\Admin\MataKuliahController::class, ['as' => 'admin'])->except(['show']);
         Route::post('matakuliah/import', [\App\Http\Controllers\Admin\MataKuliahController::class, 'import'])->name('admin.matakuliah.import');
         Route::get('matakuliah/template', [\App\Http\Controllers\Admin\MataKuliahController::class, 'downloadTemplate'])->name('admin.matakuliah.template');
+        Route::post('ruangan/import', [\App\Http\Controllers\Admin\RuanganController::class, 'import'])->name('admin.ruangan.import');
+        Route::get('ruangan/template', [\App\Http\Controllers\Admin\RuanganController::class, 'downloadTemplate'])->name('admin.ruangan.template');
         Route::resource('ruangan', \App\Http\Controllers\Admin\RuanganController::class, ['as' => 'admin']);
         Route::resource('sesikuliah', \App\Http\Controllers\Admin\SesiKuliahController::class, ['as' => 'admin']);
         Route::resource('dosen', \App\Http\Controllers\Admin\DosenController::class, ['as' => 'admin'])->except(['show']);
@@ -158,6 +160,7 @@ Route::middleware('auth')->group(function () {
 
     Route::prefix('dosen')->middleware('role:dosen')->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\Dosen\DashboardController::class, 'index'])->name('dosen.dashboard');
+        Route::get('/download-jadwal', [\App\Http\Controllers\Dosen\DashboardController::class, 'downloadJadwal'])->name('dosen.jadwal.download');
         Route::get('/presensi', [DosenPresensi::class, 'index'])->name('dosen.presensi');
         Route::get('/riwayat', [\App\Http\Controllers\Dosen\RiwayatController::class, 'index'])->name('dosen.riwayat');
         Route::post('/presensi/init', [DosenPresensi::class, 'init']);

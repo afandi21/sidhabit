@@ -17,7 +17,7 @@ class DeviceController extends Controller
         return view('dosen.device.index', compact('devices'));
     }
 
-    public function destroy($id)
+    public function destroy(\App\Http\Requests\DestroyDeviceRequest $request, $id)
     {
         $user = Auth::user();
         $device = $user->webAuthnCredentials()->findOrFail($id);

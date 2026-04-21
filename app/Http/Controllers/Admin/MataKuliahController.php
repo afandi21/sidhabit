@@ -42,26 +42,38 @@ class MataKuliahController extends Controller
             "Content-Disposition" => "attachment; filename=template_import_matakuliah.csv",
         ]);
     }
-    public function index()
+    public function index(Request $request)
     {
         $activeSemester = \DB::table('semesters')->where('is_active', true)->first();
-        $query = MataKuliah::with('programStudi');
+        $query = MataKuliah::with('programStudi')->byRole();
 
-        if ($activeSemester && !request()->has('semua')) {
-            // Jika Semester Ganjil dipilih (misal Ganjil 2025/2026)
-            // Maka tampilkan MK semester 1, 3, 5, 7
+        // Pencarian Nama/Kode MK
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('nama_mk', 'LIKE', "%{$search}%")
+                  ->orWhere('kode_mk', 'LIKE', "%{$search}%");
+            });
+        }
+
+        // Filter Prodi
+        if ($request->filled('prodi_id')) {
+            $query->where('program_studi_id', $request->prodi_id);
+        }
+
+        if ($activeSemester && !$request->has('semua')) {
             if (str_contains(strtolower($activeSemester->nama_semester), 'ganjil')) {
                 $query->whereRaw('semester % 2 != 0');
             } 
-            // Jika Semester Genap dipilih
-            // Maka tampilkan MK semester 2, 4, 6, 8
             else if (str_contains(strtolower($activeSemester->nama_semester), 'genap')) {
                 $query->whereRaw('semester % 2 = 0');
             }
         }
 
-        $matkuls = $query->get();
-        return view('admin.matakuliah.index', compact('matkuls', 'activeSemester'));
+        $matkuls = $query->orderBy('semester')->orderBy('nama_mk')->paginate(25)->withQueryString();
+        $prodis = ProgramStudi::orderBy('nama_prodi')->get();
+
+        return view('admin.matakuliah.index', compact('matkuls', 'activeSemester', 'prodis'));
     }
 
     public function create()
@@ -70,19 +82,9 @@ class MataKuliahController extends Controller
         return view('admin.matakuliah.create', compact('prodis'));
     }
 
-    public function store(Request $request)
+    public function store(\App\Http\Requests\StoreMataKuliahRequest $request)
     {
-        $request->validate([
-            'kode_mk' => 'required|unique:mata_kuliah,kode_mk',
-            'nama_mk' => 'required|string|max:255',
-            'sks' => 'required|integer|min:1|max:8',
-            'semester' => 'required|integer|min:1|max:8',
-            'program_studi_id' => 'required|exists:program_studi,id',
-            'jenis' => 'required|in:teori,praktikum,teori_praktikum',
-            'kategori' => 'required|in:dikti,mahad',
-        ]);
-
-        MataKuliah::create($request->all());
+        MataKuliah::create($request->validated());
         return redirect()->route('admin.matakuliah.index')->with('success', 'Mata Kuliah berhasil ditambahkan.');
     }
 
@@ -92,17 +94,9 @@ class MataKuliahController extends Controller
         return view('admin.matakuliah.edit', compact('matakuliah', 'prodis'));
     }
 
-    public function update(Request $request, MataKuliah $matakuliah)
+    public function update(\App\Http\Requests\UpdateMataKuliahRequest $request, MataKuliah $matakuliah)
     {
-        $request->validate([
-            'kode_mk' => 'required|unique:mata_kuliah,kode_mk,' . $matakuliah->id,
-            'nama_mk' => 'required|string|max:255',
-            'sks' => 'required|integer',
-            'program_studi_id' => 'required|exists:program_studi,id',
-            'kategori' => 'required',
-        ]);
-
-        $matakuliah->update($request->all());
+        $matakuliah->update($request->validated());
         return redirect()->route('admin.matakuliah.index')->with('success', 'Mata Kuliah berhasil diperbarui.');
     }
 

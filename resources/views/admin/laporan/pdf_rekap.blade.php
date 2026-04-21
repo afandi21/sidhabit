@@ -47,7 +47,7 @@
                 @endphp
                 <tr>
                     <td>{{ $index + 1 }}</td>
-                    <td>{{ $dosen->nama_gelar }}</td>
+                    <td>{{ $dosen->nama_lengkap }}</td>
                     <td>{{ $dosen->nidn }}</td>
                     <td>{{ $hadir }}</td>
                     <td>{{ $terlambat }}</td>

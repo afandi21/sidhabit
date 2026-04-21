@@ -73,7 +73,7 @@ class RekapPresensiExport implements FromCollection, WithHeadings, WithMapping, 
         $persentase = $totalTarget > 0 ? round((($hadir + $terlambat) / $totalTarget) * 100, 1) : 0;
 
         return [
-            $dosen->nama_gelar,
+            $dosen->nama_lengkap,
             $dosen->nidn,
             $dosen->programStudi->nama_prodi ?? '-',
             $hadir,

@@ -58,7 +58,7 @@
                     @forelse($presensis as $p)
                     <tr>
                         <td class="ps-4">
-                            <div class="fw-bold">{{ $p->dosen->nama_gelar }}</div>
+                            <div class="fw-bold">{{ $p->dosen->nama_lengkap }}</div>
                             <small class="text-muted">{{ $p->dosen->programStudi->nama_prodi ?? '-' }}</small>
                         </td>
                         <td>

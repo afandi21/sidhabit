@@ -11,6 +11,13 @@ use Carbon\Carbon;
 
 class LaporanController extends Controller
 {
+    protected $laporanService;
+
+    public function __construct(\App\Services\LaporanService $laporanService)
+    {
+        $this->laporanService = $laporanService;
+    }
+
     public function harian(Request $request)
     {
         $tanggal = $request->get('tanggal', today()->format('Y-m-d'));
@@ -19,18 +26,7 @@ class LaporanController extends Controller
         $query = Presensi::with(['dosen.programStudi', 'jadwalMengajar.mataKuliah', 'jadwalMengajar.ruangan'])
             ->whereDate('tanggal', $tanggal);
 
-        // Scoping Data: Kaprodi hanya melihat prodinya sendiri
-        if (!auth()->user()->hasRole('wakil_1_akademik')) {
-            $prodiId = auth()->user()->program_studi_id;
-            $query->whereHas('dosen', function($q) use ($prodiId) {
-                $q->where('program_studi_id', $prodiId);
-            });
-        } elseif ($prodiId) {
-            // Wakil 1 bisa memfilter prodi apapun
-            $query->whereHas('dosen', function($q) use ($prodiId) {
-                $q->where('program_studi_id', $prodiId);
-            });
-        }
+        $query = $this->laporanService->filterByRoleAndProdi($query, $prodiId);
 
         $presensis = $query->orderBy('jam_masuk', 'asc')->get();
         $prodis = ProgramStudi::active()->get();
@@ -48,35 +44,15 @@ class LaporanController extends Controller
             ->whereMonth('tanggal', $bulan)
             ->whereYear('tanggal', $tahun);
 
-        // Scoping Data
-        if (!auth()->user()->hasRole('wakil_1_akademik')) {
-            $prodiId = auth()->user()->program_studi_id;
-            $query->whereHas('dosen', function($q) use ($prodiId) {
-                $q->where('program_studi_id', $prodiId);
-            });
-        } elseif ($prodiId) {
-            $query->whereHas('dosen', function($q) use ($prodiId) {
-                $q->where('program_studi_id', $prodiId);
-            });
-        }
-
-        $presensis = $query->get();
+        $query = $this->laporanService->filterByRoleAndProdi($query, $prodiId);
         
-        // Grouping for summary
-        $rekap = $presensis->groupBy('dosen_id')->map(function ($items) {
-            return [
-                'nama' => $items->first()->dosen->nama_gelar,
-                'hadir' => $items->whereIn('status', ['hadir', 'terlambat'])->count(),
-                'izin' => $items->whereIn('status', ['izin', 'sakit', 'cuti'])->count(),
-                'alfa' => $items->where('status', 'alfa')->count(),
-                'total_menit' => $items->sum('durasi_menit'),
-            ];
-        });
-
+        $presensis = $query->get();
+        $rekap = $this->laporanService->calculateRekapBulanan($presensis);
         $prodis = ProgramStudi::active()->get();
 
         return view('admin.laporan.bulanan', compact('rekap', 'prodis', 'bulan', 'tahun', 'prodiId'));
     }
+
     public function exportExcel(Request $request)
     {
         $bulan = $request->get('bulan', now()->month);
@@ -98,9 +74,8 @@ class LaporanController extends Controller
         $prodiId = $request->get('program_studi_id');
 
         $query = \App\Models\Dosen::with(['programStudi']);
-        if ($prodiId) {
-            $query->where('program_studi_id', $prodiId);
-        }
+        $query = $this->laporanService->filterDosenByRoleAndProdi($query, $prodiId);
+        
         $dosens = $query->get();
 
         $data = [

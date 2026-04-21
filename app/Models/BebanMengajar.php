@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class BebanMengajar extends Model
 {
+    use \App\Traits\FilterByRoleTrait;
     protected $table = 'beban_mengajar';
     protected $fillable = ['semester_id', 'dosen_id', 'mata_kuliah_id', 'kelas', 'total_sks', 'sks_terjadwal'];
 

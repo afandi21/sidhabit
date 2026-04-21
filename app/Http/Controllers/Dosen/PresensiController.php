@@ -65,18 +65,37 @@ class PresensiController extends Controller
         // Verifikasi Biometrik menggunakan Laragear WebAuthn
         // Jika request tidak membawa bukti biometrik yang valid, sistem akan menolak
         try {
-            // Kita menggunakan fitur 'reauthenticate' untuk memastikan ini benar-benar pemilik akun
-            // yang melakukan scan sidik jari saat ini.
             if (!$user->hasWebAuthnCredential()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Anda belum mendaftarkan sidik jari di menu Daftar Perangkat.'
                 ], 422);
             }
+
+            // Validasi nyata terhadap data "assertion" dari sidik jari (WebAuthn)
+            if (!$request->has('assertion')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data biometrik tidak dikirim. Harap scan jari Anda.'
+                ], 422);
+            }
+
+            // Melakukan verifikasi kriptografi WebAuthn
+            $validated = \Laragear\WebAuthn\Facades\WebAuthn::assert()
+                ->fromRequest($request, 'assertion')
+                ->verify();
+
+            if (!$validated) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Sidik jari tidak cocok dengan perangkat ini.'
+                ], 422);
+            }
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan pada sensor biometrik: ' . $e->getMessage()
+                'message' => 'Terjadi kesalahan pada sensor biometrik atau sesi telah kadaluarsa. Coba muat ulang halaman.'
             ], 422);
         }
 

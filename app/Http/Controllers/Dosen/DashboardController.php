@@ -44,4 +44,21 @@ class DashboardController extends Controller
 
         return view('dosen.dashboard', compact('dosen', 'jadwals', 'totalHadir', 'jadwalHariIni', 'semesterAktif'));
     }
+
+    public function downloadJadwal()
+    {
+        $user = Auth::user();
+        $dosen = $user->dosen;
+        $semesterAktif = Semester::where('is_active', true)->first();
+
+        $jadwals = JadwalMengajar::with(['mataKuliah.programStudi', 'ruangan', 'hari', 'sesiMulai', 'sesiSelesai'])
+            ->where('dosen_id', $dosen->id)
+            ->where('semester_id', $semesterAktif->id ?? 0)
+            ->orderBy('hari_id')
+            ->orderBy('jam_mulai')
+            ->get();
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('dosen.jadwal_pdf', compact('dosen', 'jadwals', 'semesterAktif'));
+        return $pdf->download('Jadwal_Mengajar_' . str_replace(' ', '_', $dosen->nama_lengkap) . '.pdf');
+    }
 }

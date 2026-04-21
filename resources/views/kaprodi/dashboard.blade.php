@@ -92,7 +92,7 @@
                                     <span class="badge bg-light text-dark rounded-circle">{{ $index + 1 }}</span>
                                 </td>
                                 <td>
-                                    <div class="fw-bold">{{ $d->nama_gelar }}</div>
+                                    <div class="fw-bold">{{ $d->nama_lengkap }}</div>
                                     <small class="text-muted">{{ $d->nidn }}</small>
                                 </td>
                                 <td class="text-end pe-4">

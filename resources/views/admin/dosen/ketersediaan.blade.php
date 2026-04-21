@@ -6,7 +6,7 @@
 <div class="mb-4">
     <a href="{{ route('admin.dosen.index') }}" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> Kembali</a>
     <h4 class="mt-2 fw-bold">Atur Ketersediaan Dosen</h4>
-    <p class="text-muted">Dosen: <strong>{{ $dosen->nama_gelar }}</strong></p>
+    <p class="text-muted">Dosen: <strong>{{ $dosen->nama_lengkap }}</strong></p>
 </div>
 
 <div class="row">

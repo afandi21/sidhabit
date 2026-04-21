@@ -68,7 +68,7 @@
                                 </div>
                                 <small class="text-muted">{{ $j->mataKuliah->kode_mk }} ({{ $j->mataKuliah->sks }} SKS)</small>
                             </td>
-                            <td>{{ $j->dosen->nama_gelar }}</td>
+                            <td>{{ $j->dosen->nama_lengkap }}</td>
                             <td>
                                 <span class="badge bg-light text-dark fw-bold border">{{ $j->ruangan->kode_ruangan ?? '-' }}</span>
                                 <span class="ms-2 small text-muted">Kelas: {{ $j->kelas ?? '-' }}</span>

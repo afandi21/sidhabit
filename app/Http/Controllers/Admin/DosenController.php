@@ -15,10 +15,31 @@ use Illuminate\Support\Facades\Storage;
 
 class DosenController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $dosens = Dosen::with(['programStudi', 'user'])->get();
-        return view('admin.dosen.index', compact('dosens'));
+        $query = Dosen::with(['programStudi', 'user'])->byRole();
+
+        // Filter berdasarkan Pencarian Nama/NIDN
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('nama_lengkap', 'LIKE', "%{$search}%")
+                  ->orWhere('nidn', 'LIKE', "%{$search}%")
+                  ->orWhereHas('user', function($qu) use ($search) {
+                      $qu->where('email', 'LIKE', "%{$search}%");
+                  });
+            });
+        }
+
+        // Filter berdasarkan Program Studi
+        if ($request->filled('prodi_id')) {
+            $query->where('program_studi_id', $request->prodi_id);
+        }
+
+        $dosens = $query->latest()->paginate(25)->withQueryString();
+        $prodis = ProgramStudi::orderBy('nama_prodi')->get();
+
+        return view('admin.dosen.index', compact('dosens', 'prodis'));
     }
 
     public function import(Request $request)
@@ -71,47 +92,20 @@ class DosenController extends Controller
         return view('admin.dosen.create', compact('prodis'));
     }
 
-    public function store(Request $request)
+    protected $dosenService;
+
+    public function __construct(\App\Services\DosenService $dosenService)
     {
-        $request->validate([
-            'nama_lengkap' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|min:8',
-            'nidn' => 'nullable|unique:dosens,nidn',
-            'nuptk' => 'nullable|unique:dosens,nuptk',
-            'program_studi_id' => 'required|exists:program_studi,id',
-            'jenis_kelamin' => 'required|in:L,P',
-            'tanggal_lahir' => 'required|date',
-        ]);
+        $this->dosenService = $dosenService;
+    }
 
-        DB::beginTransaction();
+    public function store(\App\Http\Requests\StoreDosenRequest $request)
+    {
         try {
-            $user = User::create([
-                'name' => $request->nama_lengkap,
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
-            ]);
-            $user->assignRole('dosen');
-
-            Dosen::create([
-                'user_id' => $user->id,
-                'nidn' => $request->nidn,
-                'nuptk' => $request->nuptk,
-                'nama_lengkap' => $request->nama_lengkap,
-                'gelar_depan' => $request->gelar_depan,
-                'gelar_belakang' => $request->gelar_belakang,
-                'jenis_kelamin' => $request->jenis_kelamin,
-                'tanggal_lahir' => $request->tanggal_lahir,
-                'no_hp' => $request->no_hp,
-                'program_studi_id' => $request->program_studi_id,
-                'status_aktif' => 'aktif',
-            ]);
-
-            DB::commit();
+            $this->dosenService->createDosen($request->validated());
             return redirect()->route('admin.dosen.index')->with('success', 'Data dosen berhasil ditambahkan.');
         } catch (\Exception $e) {
-            DB::rollback();
-            return back()->with('error', 'Gagal menambahkan data: ' . $e->getMessage());
+            return back()->with('error', 'Gagal menambahkan data: ' . $e->getMessage())->withInput();
         }
     }
 
@@ -121,49 +115,23 @@ class DosenController extends Controller
         return view('admin.dosen.edit', compact('dosen', 'prodis'));
     }
 
-    public function update(Request $request, Dosen $dosen)
+    public function update(\App\Http\Requests\UpdateDosenRequest $request, Dosen $dosen)
     {
-        $request->validate([
-            'nama_lengkap' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $dosen->user_id,
-            'nidn' => 'nullable|unique:dosens,nidn,' . $dosen->id,
-            'nuptk' => 'nullable|unique:dosens,nuptk,' . $dosen->id,
-            'program_studi_id' => 'required|exists:program_studi,id',
-        ]);
-
-        DB::beginTransaction();
         try {
-            $dosen->user->update([
-                'name' => $request->nama_lengkap,
-                'email' => $request->email,
-            ]);
-
-            if ($request->password) {
-                $dosen->user->update(['password' => Hash::make($request->password)]);
-            }
-
-            $dosen->update($request->all());
-
-            DB::commit();
+            $this->dosenService->updateDosen($dosen, $request->validated());
             return redirect()->route('admin.dosen.index')->with('success', 'Data dosen berhasil diperbarui.');
         } catch (\Exception $e) {
-            DB::rollback();
-            return back()->with('error', 'Gagal memperbarui data: ' . $e->getMessage());
+            return back()->with('error', 'Gagal memperbarui data: ' . $e->getMessage())->withInput();
         }
     }
 
     public function destroy(Dosen $dosen)
     {
-        DB::beginTransaction();
         try {
-            $user = $dosen->user;
-            $dosen->delete();
-            $user->delete();
-            DB::commit();
+            $this->dosenService->deleteDosen($dosen);
             return redirect()->route('admin.dosen.index')->with('success', 'Data dosen berhasil dihapus.');
         } catch (\Exception $e) {
-            DB::rollback();
-            return back()->with('error', 'Gagal menghapus data.');
+            return back()->with('error', 'Gagal menghapus data: ' . $e->getMessage());
         }
     }
 

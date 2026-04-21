@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class JadwalMengajar extends Model
 {
+    use \App\Traits\FilterByRoleTrait;
     protected $table = 'jadwal_mengajar';
     protected $fillable = [
         'dosen_id', 'mata_kuliah_id', 'ruangan_id', 'semester_id', 'hari_id',

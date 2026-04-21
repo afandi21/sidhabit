@@ -19,15 +19,9 @@ class FakultasController extends Controller
         return view('admin.fakultas.create');
     }
 
-    public function store(Request $request)
+    public function store(\App\Http\Requests\StoreFakultasRequest $request)
     {
-        $request->validate([
-            'kode_fakultas' => 'required|unique:fakultas,kode_fakultas',
-            'nama_fakultas' => 'required|string|max:255',
-            'dekan' => 'nullable|string|max:255',
-        ]);
-
-        Fakultas::create($request->all());
+        Fakultas::create($request->validated());
         return redirect()->route('admin.fakultas.index')->with('success', 'Fakultas berhasil ditambahkan.');
     }
 
@@ -36,14 +30,9 @@ class FakultasController extends Controller
         return view('admin.fakultas.edit', compact('fakultas'));
     }
 
-    public function update(Request $request, Fakultas $fakultas)
+    public function update(\App\Http\Requests\UpdateFakultasRequest $request, Fakultas $fakultas)
     {
-        $request->validate([
-            'kode_fakultas' => 'required|unique:fakultas,kode_fakultas,' . $fakultas->id,
-            'nama_fakultas' => 'required|string|max:255',
-        ]);
-
-        $fakultas->update($request->all());
+        $fakultas->update($request->validated());
         return redirect()->route('admin.fakultas.index')->with('success', 'Fakultas berhasil diperbarui.');
     }
 

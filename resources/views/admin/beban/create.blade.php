@@ -30,7 +30,7 @@
                         <select name="dosen_id" class="form-select" required>
                             <option value="">-- Pilih Dosen --</option>
                             @foreach($dosens as $d)
-                                <option value="{{ $d->id }}">{{ $d->nama_gelar }}</option>
+                                <option value="{{ $d->id }}">{{ $d->nama_lengkap }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -47,7 +47,12 @@
                         </div>
                         <div class="col-md-4">
                             <label class="form-label small fw-bold">Kelas</label>
-                            <input type="text" name="kelas" class="form-control" placeholder="Contoh: TI-A" required>
+                            <select name="kelas" class="form-select" required>
+                                <option value="">-- Pilih --</option>
+                                @foreach($ruangans as $r)
+                                    <option value="{{ $r->nama_ruangan }}">{{ $r->nama_ruangan }}</option>
+                                @endforeach
+                            </select>
                         </div>
                     </div>
 

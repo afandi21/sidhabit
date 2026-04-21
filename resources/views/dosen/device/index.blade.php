@@ -100,10 +100,10 @@
                                 <h6 class="mb-0 fw-bold">{{ $device->alias }}</h6>
                                 <span class="text-muted smaller">Aktif sejak {{ $device->created_at->format('d M Y') }}</span>
                             </div>
-                            <form action="{{ route('device.destroy', $device->id) }}" method="POST">
+                            <form id="delete-device-form-{{ $device->id }}" action="{{ route('device.destroy', $device->id) }}" method="POST">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-link text-danger p-0">
+                                <button type="button" class="btn btn-link text-danger p-0" onclick="confirmDeleteDevice('{{ $device->id }}')">
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </form>
@@ -174,6 +174,23 @@
 
 @push('scripts')
 <script>
+    function confirmDeleteDevice(id) {
+        let pwd = prompt("KEAMANAN SISTEM:\n\nMasukkan password akun Anda untuk mengkonfirmasi penghapusan perangkat biometrik ini:");
+        
+        if(pwd) {
+            let form = document.getElementById('delete-device-form-' + id);
+            
+            // Tambahkan input hidden untuk mengirim password ke server
+            let input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'password';
+            input.value = pwd;
+            form.appendChild(input);
+            
+            form.submit();
+        }
+    }
+
     // Embedded WebAuthn Helper (Bypass Ngrok Asset Blocking)
     class WebAuthnHelper {
         async register(alias) {

@@ -22,7 +22,7 @@
                             <select name="dosen_id" class="form-select @error('dosen_id') is-invalid @enderror" required>
                                 @foreach($dosens as $d)
                                     <option value="{{ $d->id }}" {{ $jadwal->dosen_id == $d->id ? 'selected' : '' }}>
-                                        {{ $d->nama_gelar }} ([{{ $d->programStudi->kode_prodi ?? '-' }}])
+                                        {{ $d->nama_lengkap }} ([{{ $d->programStudi->kode_prodi ?? '-' }}])
                                     </option>
                                 @endforeach
                             </select>

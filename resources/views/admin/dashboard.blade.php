@@ -87,7 +87,7 @@
                         @forelse($presensiTerbaru as $p)
                         <tr>
                             <td class="ps-3">
-                                <div>{{ $p->dosen->nama_gelar }}</div>
+                                <div>{{ $p->dosen->nama_lengkap }}</div>
                                 <small class="text-muted">{{ $p->jadwalMengajar->mataKuliah->nama_mk }}</small>
                             </td>
                             <td>{{ \Carbon\Carbon::parse($p->jam_masuk)->format('H:i') }}</td>
@@ -122,7 +122,7 @@
                             <i class="bi bi-person text-secondary"></i>
                         </div>
                         <div>
-                            <div class="small fw-bold">{{ $d->nama_gelar }}</div>
+                            <div class="small fw-bold">{{ $d->nama_lengkap }}</div>
                             <small class="text-muted">{{ $d->nip ?? 'NIP -' }}</small>
                         </div>
                     </li>

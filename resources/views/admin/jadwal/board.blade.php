@@ -86,7 +86,7 @@
                                 <span class="badge bg-primary rounded-pill sks-count"><span class="terjadwal">{{ $beban->sks_terjadwal }}</span>/{{ $beban->total_sks }}</span>
                             </div>
                             <div class="fw-bold mb-1 lh-sm">{{ $beban->mataKuliah->nama_mk }}</div>
-                            <div class="small text-muted mb-1"><i class="bi bi-person"></i> {{ $beban->dosen->nama_gelar }}</div>
+                            <div class="small text-muted mb-1"><i class="bi bi-person"></i> {{ $beban->dosen->nama_lengkap }}</div>
                             <div class="small fw-semibold text-success"><i class="bi bi-door-open"></i> Kelas: {{ $beban->kelas }}</div>
                         </div>
                     </div>
@@ -147,7 +147,7 @@
                                                     @if(is_object($isi))
                                                         <div class="badge bg-secondary bg-opacity-75 text-wrap text-start p-2 w-100 mb-1 shadow-sm">
                                                             <div class="fw-bold fs-7">{{ $isi->mataKuliah->nama_mk }}</div>
-                                                            <small>{{ $isi->dosen->nama_gelar }} ({{ $isi->kelas }})</small>
+                                                            <small>{{ $isi->dosen->nama_lengkap }} ({{ $isi->kelas }})</small>
                                                         </div>
                                                     @endif
                                                 @endif

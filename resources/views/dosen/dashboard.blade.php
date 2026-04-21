@@ -9,11 +9,14 @@
             <div class="card-body p-4 p-md-5 position-relative">
                 <div class="row align-items-center">
                     <div class="col-md-8">
-                        <h2 class="fw-bold mb-1">Selamat Datang, {{ $dosen->nama_gelar }}!</h2>
+                        <h2 class="fw-bold mb-1">Selamat Datang, {{ $dosen->nama_lengkap }}!</h2>
                         <p class="opacity-75 mb-4">Anda mengajar di Semester {{ $semesterAktif->nama_semester ?? '-' }}</p>
                         <div class="d-flex gap-3">
                             <a href="{{ route('dosen.presensi') }}" class="btn btn-warning px-4 py-2 fw-bold shadow">
                                 <i class="bi bi-fingerprint me-2"></i> Presensi Sekarang
+                            </a>
+                            <a href="{{ route('dosen.jadwal.download') }}" class="btn btn-light px-4 py-2 fw-bold shadow">
+                                <i class="bi bi-download me-2"></i> Unduh Jadwal (PDF)
                             </a>
                         </div>
                     </div>

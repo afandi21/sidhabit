@@ -38,7 +38,7 @@
                     <div class="mb-4">
                         <label class="form-label small fw-bold">Jenjang</label>
                         <select name="jenjang" class="form-select" required>
-                            @foreach(['D3', 'S1', 'S2', 'S3'] as $j)
+                            @foreach(['D1', 'D2', 'D3', 'D4', 'S1', 'S2', 'S3'] as $j)
                                 <option value="{{ $j }}" {{ $prodi->jenjang == $j ? 'selected' : '' }}>{{ $j }}</option>
                             @endforeach
                         </select>
